@@ -1,0 +1,29 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: devnode
+  labels:
+    app: devnode
+spec:
+  containers:
+  - name: devnode
+    image: juaningles/devnode:mantic
+    imagePullPolicy: Always
+    command: ["tail"]
+    args: ["-F", "/tmp/output.log"]
+  restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: devnode
+  name: cli
+spec:
+  ports:
+  - port: 9999
+  selector:
+    app: devnode
+  sessionAffinity: None
+  type: ClusterIP
