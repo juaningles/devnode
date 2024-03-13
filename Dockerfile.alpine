@@ -1,0 +1,10 @@
+FROM alpine:3
+RUN apk add --no-cache make curl jq tmux bash
+
+ENV PYTHONUNBUFFERED=1
+RUN apk add --no-cache python3 py3-pip && ln -sf python3 /usr/bin/python
+RUN pip3 install --no-cache --upgrade --break-system-packages pip setuptools
+
+# RUN apk add gcc python3-dev musl-dev linux-headers
+# RUN pip install  --break-system-packages azure-cli
+# RUN apk add podman podman-docker
