@@ -35,4 +35,4 @@ $(FULL_IMAGES):
 tag-all:
 
 
-puah-all:
+pull-all:
