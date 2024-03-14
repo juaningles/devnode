@@ -5,7 +5,7 @@ REPO ?= juaningles
 
 all: build
 
-UBUNTU_IMAGES=jammy mantic noble
+UBUNTU_IMAGES=jammy mantic noble lunar
 ALPINE_IMAGES=alpine
 FULL_IMAGES=full
 ALL_IMAGES= $(UBUNTU_IMAGES) $(ALPINE_IMAGES) $(FULL_IMAGES)
@@ -30,7 +30,7 @@ $(ALPINE_IMAGES):
 
 $(FULL_IMAGES):
 	echo Building $@
-	podman build -t devnode:$@ -f Dockerfile.$@ --build-arg=VERSION=jammy  .
+	podman build -t devnode:$@ -f Dockerfile.$@   .
 
 tag-all:
 

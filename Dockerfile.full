@@ -1,5 +1,5 @@
 ARG FAMILY=ubuntu
-ARG VERSION=jammy
+ARG VERSION=lunar
 FROM $FAMILY:$VERSION as builder
 
 ARG DEBIAN_FRONTEND=noninteractive
