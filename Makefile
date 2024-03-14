@@ -1,6 +1,8 @@
 NAME := odbc-base
 
 REPO ?= juaningles
+DEFAULT_TAG ?= jammy
+
 .PHONY: all name info2 build info cloud-build clean clean-adaar docker-deps git-deps tag-all refresh quickview cves recommendations docker-deps $(DIR_SOURCES) $(SUB_DIRS)
 
 all: build
@@ -32,7 +34,32 @@ $(FULL_IMAGES):
 	echo Building $@
 	podman build -t devnode:$@ -f Dockerfile.$@   .
 
+build: $(DEFAULT_TAG)
+
 tag-all:
 
+push-all:
 
-pull-all:
+test-trivy:
+	podman run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c "./install_trivy.sh ; trivy --version"
+
+test-azcli:
+	podman run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c "./install_azcli.sh ; az --version"
+
+test-databricks:
+	podman run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c "./install_databricks.sh ; databricks --version"
+
+test-odbc:
+	podman run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c "./install_odbc.sh ; /opt/mssql-tools18/bin/sqlcmd -? | head -n 3"
+
+test-podman:
+	podman run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c "./install_podman.sh ; podman info"
+
+test-python:
+	podman run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c "./install_python.sh ; python --version"
+
+test: test-databricks test-azcli test-python test-podman  test-odbc test-trivy
+	@echo SUCCESS
+
+runit:
+	podman run -it --rm --privileged  devnode:$(DEFAULT_TAG)
