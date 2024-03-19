@@ -15,8 +15,17 @@ RUN apt-get update \
     &&	rm -rf /var/lib/apt/lists/* \
     &&	rm -f /etc/ssh/ssh_host_*
 
+
 RUN apt-get update \
-    &&  apt-get -y install vim \
+    &&  apt-get -y install dnsutils iputils-ping nmap netcat-openbsd \
+    &&	apt-get clean \
+    &&	rm -rf /bd_build \
+    &&	rm -rf /tmp/* /var/tmp/* \
+    &&	rm -rf /var/lib/apt/lists/* \
+    &&	rm -f /etc/ssh/ssh_host_*
+
+RUN apt-get update \
+    &&  apt-get -y install vim git \
     &&	apt-get clean \
     &&	rm -rf /bd_build \
     &&	rm -rf /tmp/* /var/tmp/* \

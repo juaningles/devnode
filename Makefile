@@ -1,7 +1,7 @@
 NAME := odbc-base
 
 REPO ?= juaningles
-DEFAULT_TAG ?= jammy
+DEFAULT_TAG ?= lunar
 
 .PHONY: all name info2 build info cloud-build clean clean-adaar docker-deps git-deps tag-all refresh quickview cves recommendations docker-deps $(DIR_SOURCES) $(SUB_DIRS)
 
@@ -54,6 +54,12 @@ test-odbc:
 
 test-podman:
 	podman run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c "./install_podman.sh ; podman info"
+
+test-netutils:
+	podman run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c "./install_netutils.sh ; nmap --version"
+
+test-devutils:
+	podman run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c "./install_devutils.sh ; git --version"
 
 test-python:
 	podman run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c "./install_python.sh ; python --version"
