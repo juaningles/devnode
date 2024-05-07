@@ -1,7 +1,7 @@
 NAME := odbc-base
 
 REPO ?= juaningles
-DEFAULT_TAG ?= lunar
+DEFAULT_TAG ?= noble
 
 .PHONY: all name info2 build info cloud-build clean clean-adaar docker-deps git-deps tag-all refresh quickview cves recommendations docker-deps $(DIR_SOURCES) $(SUB_DIRS)
 
