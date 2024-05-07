@@ -7,7 +7,7 @@ RUN mkdir /usr/depot
 WORKDIR /usr/depot
 
 RUN apt-get update \
-    &&  apt-get -y install make curl jq tmux unzip \
+    &&  apt-get -y install make curl jq tmux unzi tzdata bash-completion \
     &&	apt-get clean \
     &&	rm -rf /bd_build \
     &&	rm -rf /tmp/* /var/tmp/* \
