@@ -15,7 +15,7 @@ $SUDO apt-get -y install apt-transport-https
 
 curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | $SUDO gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg
 curl https://packages.microsoft.com/keys/microsoft.asc |  $SUDO tee /etc/apt/trusted.gpg.d/microsoft.asc
-curl https://packages.microsoft.com/config/ubuntu/$(awk -F "=" '/^DISTRIB_RELEASE=/ {print $2}' /etc/lsb-release | $SUDO sed -e 's/22\.10/22.04/')/prod.list > /etc/apt/sources.list.d/mssql-release.list
+curl https://packages.microsoft.com/config/ubuntu/$(awk -F "=" '/^DISTRIB_RELEASE=/ {print $2}' /etc/lsb-release | $SUDO sed -e 's/22\.10/22.04/' | $SUDO sed -e 's/24\.04/22.04/')/prod.list > /etc/apt/sources.list.d/mssql-release.list
 
 $SUDO apt-get update
 export ACCEPT_EULA=Y
