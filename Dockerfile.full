@@ -8,8 +8,10 @@ ENV TZ=Etc/UTC
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 
-RUN mkdir /usr/depot
+RUN mkdir -p /usr/depot/installers
 WORKDIR /usr/depot
+
+COPY $FAMILY_installs/* /usr/depot/installers
 
 RUN apt-get update \
     &&  apt-get -y install make curl jq tmux unzip tzdata bash-completion \
