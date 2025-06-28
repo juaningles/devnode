@@ -1,7 +1,9 @@
-NAME := odbc-base
+NAME := devnode
 
 REPO ?= juaningles
-DEFAULT_TAG ?= noble
+DEFAULT_TAG ?= full
+DEFAUL_WSL_TAG ?= noble
+DOCKER ?= $(DOCKER)
 
 .PHONY: all name info2 build info cloud-build clean clean-adaar docker-deps git-deps tag-all refresh quickview cves recommendations docker-deps $(DIR_SOURCES) $(SUB_DIRS)
 
@@ -14,9 +16,14 @@ ALL_IMAGES= $(UBUNTU_IMAGES) $(ALPINE_IMAGES) $(FULL_IMAGES)
 
 
 info:
-	@echo $(DIR_SOURCES)
-	@echo $(SUB_SOURCES)
-	@echo $(SUB_DIRS)
+# @echo $(DIR_SOURCES)
+# @echo $(SUB_SOURCES)
+# @echo $(SUB_DIRS)
+	@echo NAME=$(NAME)
+	@echo REPO=$(REPO)
+	@echo DEFAULT_TAG=$(DEFAULT_TAG)
+	@echo DOCKER=$(DOCKER)
+
 
 info2:
 	@echo "Original Sub Sources: $(SUB_SOURCES)"
@@ -24,15 +31,15 @@ info2:
 
 $(UBUNTU_IMAGES):
 	echo Building $@
-	podman build -t devnode:$@ -f Dockerfile.ubuntu --build-arg=VERSION=$@  .
+	$(DOCKER) build -t devnode:$@ -f Dockerfile.ubuntu --build-arg=VERSION=$@  .
 
 $(ALPINE_IMAGES):
 	echo Building $@
-	podman build -t devnode:$@ -f Dockerfile.alpine --build-arg=VERSION=$@  .
+	$(DOCKER) build -t devnode:$@ -f Dockerfile.alpine --build-arg=VERSION=$@  .
 
 $(FULL_IMAGES):
 	echo Building $@
-	podman build -t devnode:$@ -f Dockerfile.$@   .
+	$(DOCKER) build -t devnode:$@ -f Dockerfile.$@   .
 
 build: $(DEFAULT_TAG)
 
@@ -41,31 +48,39 @@ tag-all:
 push-all:
 
 test-trivy:
-	podman run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c "./install_trivy.sh ; trivy --version"
+	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c "./install_trivy.sh ; trivy --version"
 
 test-azcli:
-	podman run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c "./install_azcli.sh ; az --version"
+	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c "./install_azcli.sh ; az --version"
 
 test-databricks:
-	podman run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c "./install_databricks.sh ; databricks --version"
+	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c "./install_databricks.sh ; databricks --version"
 
 test-odbc:
-	podman run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c "./install_odbc.sh ; /opt/mssql-tools18/bin/sqlcmd -? | head -n 3"
+	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c "./install_odbc.sh ; /opt/mssql-tools18/bin/sqlcmd -? | head -n 3"
 
-test-podman:
-	podman run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c "./install_podman.sh ; podman info"
+test-$(DOCKER):
+	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c "./install_$(DOCKER).sh ; $(DOCKER) info"
 
 test-netutils:
-	podman run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c "./install_netutils.sh ; nmap --version"
+	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c "./install_netutils.sh ; nmap --version"
 
 test-devutils:
-	podman run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c "./install_devutils.sh ; git --version"
+	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c "./install_devutils.sh ; git --version"
 
 test-python:
-	podman run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c "./install_python.sh ; python --version"
+	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c "./install_python.sh ; python --version"
 
-test: test-databricks test-azcli test-python test-podman  test-odbc test-trivy
+test: test-databricks test-azcli test-python test-$(DOCKER)  test-odbc test-trivy
 	@echo SUCCESS
 
 runit:
-	podman run -it --rm --privileged  devnode:$(DEFAULT_TAG)
+	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG)
+
+
+wsl: $(DEFAUL_WSL_TAG)
+	echo $@
+	docker run -d --name temp_wsl devnode:$(DEFAUL_WSL_TAG) sleep 900
+	docker export --output=$(DEFAUL_WSL_TAG).tar  temp_wsl
+	docker stop temp_wsl
+	docker rm temp_wsl

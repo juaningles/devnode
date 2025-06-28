@@ -1,0 +1,14 @@
+#!/bin/sh
+
+sh ./install_devutils.sh
+sh ./install_netutils.sh
+sh ./install_python.sh
+sh ./install_uv.sh
+sh ./install_docker.sh
+sh ./install_azcli.sh
+sh ./install_databricks.sh
+
+#./install_odbc.sh
+
+# ./install_podman.sh
+# ./install_trivy.sh
