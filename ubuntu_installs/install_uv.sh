@@ -1,1 +1,2 @@
-curl -LsSf https://astral.sh/uv | sh
+# On macOS and Linux.
+curl -LsSf https://astral.sh/uv/install.sh | sh
