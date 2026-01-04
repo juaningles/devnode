@@ -9,9 +9,9 @@ DOCKER ?= $(DOCKER)
 
 all: build
 
-UBUNTU_IMAGES=jammy mantic noble lunar
+UBUNTU_IMAGES=jammy mantic noble lunar resolute
 ALPINE_IMAGES=alpine
-FULL_IMAGES=full
+FULL_IMAGES=full full-resolute
 ALL_IMAGES= $(UBUNTU_IMAGES) $(ALPINE_IMAGES) $(FULL_IMAGES)
 
 
@@ -48,28 +48,28 @@ tag-all:
 push-all:
 
 test-trivy:
-	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c "./install_trivy.sh ; trivy --version"
+	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c  "bash install_trivy.sh ; trivy --version"
 
 test-azcli:
-	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c "./install_azcli.sh ; az --version"
+	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c  "bash install_azcli.sh ; az --version"
 
 test-databricks:
-	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c "./install_databricks.sh ; databricks --version"
+	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c  "bash install_databricks.sh ; databricks --version"
 
 test-odbc:
-	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c "./install_odbc.sh ; /opt/mssql-tools18/bin/sqlcmd -? | head -n 3"
+	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c  "bash install_odbc.sh ; /opt/mssql-tools18/bin/sqlcmd -? | head -n 3"
 
 test-$(DOCKER):
-	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c "./install_$(DOCKER).sh ; $(DOCKER) info"
+	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c  "bash install_$(DOCKER).sh ; $(DOCKER) info"
 
 test-netutils:
-	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c "./install_netutils.sh ; nmap --version"
+	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c  "bash install_netutils.sh ; nmap --version"
 
 test-devutils:
-	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c "./install_devutils.sh ; git --version"
+	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c  "bash install_devutils.sh ; git --version"
 
 test-python:
-	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c "./install_python.sh ; python --version"
+	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c  "bash install_python.sh ; python --version"
 
 test: test-databricks test-azcli test-python test-$(DOCKER)  test-odbc test-trivy
 	@echo SUCCESS
