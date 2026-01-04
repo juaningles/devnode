@@ -4,7 +4,7 @@ set -e -x
 
 SUDO=$(which sudo |  head -n 1 | tr -d "\r\n")
 $SUDO apt-get update
-$SUDO apt-get -y install python3 python3-pip
+# $SUDO apt-get -y install python3 python3-pip
 
 # $SUDO apt-get -y install gnupg2
 # $SUDO apt-get -y install apt-transport-https
