@@ -48,30 +48,57 @@ tag-all:
 push-all:
 
 test-trivy:
-	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c  "bash install_trivy.sh ; trivy --version"
+	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c  "bash /usr/depot/installers/install_trivy.sh ; trivy --version"
+
+test-installed-trivy:
+	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c  "trivy --version"
 
 test-azcli:
-	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c  "bash install_azcli.sh ; az --version"
+	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c  "bash /usr/depot/installers/install_azcli.sh ; az --version"
+
+test-installed-azcli:
+	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c  "az --version"
 
 test-databricks:
-	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c  "bash install_databricks.sh ; databricks --version"
+	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c  "bash /usr/depot/installers/install_databricks.sh ; databricks --version"
+
+test-installed-databricks:
+	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c  "databricks --version"
 
 test-odbc:
-	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c  "bash install_odbc.sh ; /opt/mssql-tools18/bin/sqlcmd -? | head -n 3"
+	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c  "bash /usr/depot/installers/install_odbc.sh ; /opt/mssql-tools18/bin/sqlcmd -? | head -n 3"
+
+test-installed-odbc:
+	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c  "/opt/mssql-tools18/bin/sqlcmd -? | head -n 3"
 
 test-$(DOCKER):
-	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c  "bash install_$(DOCKER).sh ; $(DOCKER) info"
+	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c  "bash /usr/depot/installers/install_$(DOCKER).sh ; $(DOCKER) info"
+
+test-installed-$(DOCKER):
+	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c  "$(DOCKER) info"
 
 test-netutils:
-	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c  "bash install_netutils.sh ; nmap --version"
+	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c  "bash /usr/depot/installers/install_netutils.sh ; nmap --version"
+
+test-installed-netutils:
+	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c  "nmap --version"
 
 test-devutils:
-	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c  "bash install_devutils.sh ; git --version"
+	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c  "bash /usr/depot/installers/install_devutils.sh ; git --version"
+
+test-installed-devutils:
+	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c  "git --version"
 
 test-python:
-	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c  "bash install_python.sh ; python --version"
+	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c  "bash /usr/depot/installers/install_python.sh ; python --version"
 
-test: test-databricks test-azcli test-python test-$(DOCKER)  test-odbc test-trivy
+test-installed-python:
+	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG) sh -c  "python --version"
+
+test-installers: test-databricks test-azcli test-python test-odbc test-trivy
+	@echo SUCCESS
+
+test-installed: test-installed-azcli test-installed-odbc 
 	@echo SUCCESS
 
 runit:
