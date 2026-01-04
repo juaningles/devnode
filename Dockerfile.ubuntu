@@ -1,6 +1,6 @@
 ARG FAMILY=ubuntu
 ARG VERSION=jammy
-FROM $FAMILY:$VERSION as builder
+FROM $FAMILY:$VERSION AS builder
 ARG DEBIAN_FRONTEND=noninteractive
 
 ENV TZ=Etc/UTC
