@@ -98,12 +98,14 @@ test-installed-python:
 test-installers: test-databricks test-azcli test-python test-odbc test-trivy
 	@echo SUCCESS
 
-test-installed: test-installed-azcli test-installed-odbc 
+test-installed: test-installed-netutils test-installed-devutils test-installed-odbc test-installed-python 
 	@echo SUCCESS
 
 runit:
 	$(DOCKER) run -it --rm --privileged  devnode:$(DEFAULT_TAG)
 
+scout:
+	docker scout quickview devnode:$(DEFAULT_TAG)
 
 wsl: $(DEFAUL_WSL_TAG)
 	echo $@
