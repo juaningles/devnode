@@ -45,6 +45,13 @@ RUN apt-get update \
     &&	rm -rf /var/lib/apt/lists/* \
     &&	rm -f /etc/ssh/ssh_host_*
 
+# RUN groupadd --gid 1000 user \
+#     && useradd --uid 1000 --gid user --create-home --shell /bin/bash user
+
+# ubuntu already has a user 'ubuntu' so we just activate it
+USER ubuntu
+WORKDIR /home/ubuntu
+
 # RUN apt-get update \
 #     &&  apt-get -y install podman podman-docker\
 #     &&	apt-get clean \
@@ -60,3 +67,5 @@ RUN apt-get update \
 #     &&	rm -rf /tmp/* /var/tmp/* \
 #     &&	rm -rf /var/lib/apt/lists/* \
 #     &&	rm -f /etc/ssh/ssh_host_*
+
+
