@@ -3,7 +3,7 @@
 docker buildx create --name container --driver docker-container --use
 docker buildx build \
   -f ./Dockerfile.$DOCKER_TAG \
-  -t $IMAGE_NAME:$DOCKER_TAG \
+  -t $IMAGE_NAME \
   --sbom=generator=docker/scout-sbom-indexer:latest --provenance=mode=max \
   --output=type=registry \
   .
