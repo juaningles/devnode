@@ -10,7 +10,7 @@ metadata:
 spec:
   containers:
   - name: devnode
-    image: juaningles/devnode:mantic
+    image: juaningles/devnode:full
     imagePullPolicy: Always
     command: ["tail"]
     args: ["-F", "/tmp/output.log"]
