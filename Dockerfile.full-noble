@@ -11,45 +11,69 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN mkdir -p /usr/depot/installers
 WORKDIR /usr/depot
 
+# install netutils
+COPY ubuntu_installs/install_netutils.sh /usr/depot/installers
+RUN apt-get update \
+    && bash /usr/depot/installers/install_netutils.sh \
+    &&	apt-get clean \
+    &&	rm -rf /bd_build \
+    &&	rm -rf /tmp/* /var/tmp/* \
+    &&	rm -rf /var/lib/apt/lists/* \
+    &&	rm -f /etc/ssh/ssh_host_*
+
+# install devutils
+COPY ubuntu_installs/install_devutils.sh /usr/depot/installers
+RUN apt-get update \
+    &&  bash /usr/depot/installers/install_devutils.sh \
+    &&	apt-get clean \
+    &&	rm -rf /bd_build \
+    &&	rm -rf /tmp/* /var/tmp/* \
+    &&	rm -rf /var/lib/apt/lists/* \
+    &&	rm -f /etc/ssh/ssh_host_*
+
+# install python
+COPY ubuntu_installs/install_python.sh /usr/depot/installers
+RUN apt-get update \
+   &&  bash /usr/depot/installers/install_python.sh \
+   &&	apt-get clean \
+   &&	rm -rf /bd_build \
+   &&	rm -rf /tmp/* /var/tmp/* \
+   &&	rm -rf /var/lib/apt/lists/* \
+   &&	rm -f /etc/ssh/ssh_host_*
+
+# install odbc
+COPY ubuntu_installs/install_odbc.sh /usr/depot/installers
+RUN apt-get update \
+    && bash /usr/depot/installers/install_odbc.sh \
+    &&	apt-get clean \
+    &&	rm -rf /bd_build \
+    &&	rm -rf /tmp/* /var/tmp/* \
+    &&	rm -rf /var/lib/apt/lists/* \
+    &&	rm -f /etc/ssh/ssh_host_*
+
+# RUN groupadd --gid 1000 user \
+#     && useradd --uid 1000 --gid user --create-home --shell /bin/bash user
+
+# install zsh
+RUN chsh -s /bin/zsh ubuntu
+RUN cp /etc/zsh/newuser.zshrc.recommended /home/ubuntu/.zshrc \
+    && chown ubuntu:ubuntu /home/ubuntu/.zshrc
+
+# ubuntu already has a user 'ubuntu' so we just activate it
+USER ubuntu
+WORKDIR /home/ubuntu
+
+# install powerlevel10k
+COPY ubuntu_installs/install_powerlevel10k.sh /usr/depot/installers
+RUN zsh /usr/depot/installers/install_powerlevel10k.sh
+
+
+# copy all installera
 COPY ubuntu_installs/* /usr/depot/installers
 
-RUN apt-get update \
-    &&  apt-get -y install make curl jq tmux unzip tzdata bash-completion \
-    &&	apt-get clean \
-    &&	rm -rf /bd_build \
-    &&	rm -rf /tmp/* /var/tmp/* \
-    &&	rm -rf /var/lib/apt/lists/* \
-    &&	rm -f /etc/ssh/ssh_host_*
-
-
-RUN apt-get update \
-    &&  apt-get -y install dnsutils iputils-ping nmap netcat-openbsd \
-    &&	apt-get clean \
-    &&	rm -rf /bd_build \
-    &&	rm -rf /tmp/* /var/tmp/* \
-    &&	rm -rf /var/lib/apt/lists/* \
-    &&	rm -f /etc/ssh/ssh_host_*
-
-RUN apt-get update \
-    &&  apt-get -y install vim git \
-    &&	apt-get clean \
-    &&	rm -rf /bd_build \
-    &&	rm -rf /tmp/* /var/tmp/* \
-    &&	rm -rf /var/lib/apt/lists/* \
-    &&	rm -f /etc/ssh/ssh_host_*
-
-RUN apt-get update \
-    &&  apt-get -y install gnupg2 \
-    &&  apt-get -y install apt-transport-https \
-    && curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
-    && curl https://packages.microsoft.com/config/ubuntu/$(awk -F "=" '/^DISTRIB_RELEASE=/ {print $2}' /etc/lsb-release | sed -e 's/22\.10/22.04/' | sed -e 's/24\.../22.04/')/prod.list > /etc/apt/sources.list.d/mssql-release.list \
-    && apt-get update \
-    && ACCEPT_EULA=Y apt-get -y install msodbcsql18  \
-    &&	apt-get clean \
-    &&	rm -rf /bd_build \
-    &&	rm -rf /tmp/* /var/tmp/* \
-    &&	rm -rf /var/lib/apt/lists/* \
-    &&	rm -f /etc/ssh/ssh_host_*
+USER ubuntu
+WORKDIR /home/ubuntu
+CMD ["/bin/zsh"]
 
 # RUN apt-get update \
 #     &&  apt-get -y install podman podman-docker\
@@ -59,18 +83,12 @@ RUN apt-get update \
 #     &&	rm -rf /var/lib/apt/lists/* \
 #     &&	rm -f /etc/ssh/ssh_host_*
 
-RUN apt-get update \
-   &&  bash /usr/depot/installers/install_python.sh \
-   &&	apt-get clean \
-   &&	rm -rf /bd_build \
-   &&	rm -rf /tmp/* /var/tmp/* \
-   &&	rm -rf /var/lib/apt/lists/* \
-   &&	rm -f /etc/ssh/ssh_host_*
+# RUN apt-get update \
+#     &&  curl -sL https://aka.ms/InstallAzureCLIDeb | bash \
+#     &&	apt-get clean \
+#     &&	rm -rf /bd_build \
+#     &&	rm -rf /tmp/* /var/tmp/* \
+#     &&	rm -rf /var/lib/apt/lists/* \
+#     &&	rm -f /etc/ssh/ssh_host_*
 
-RUN apt-get update \
-    &&  curl -sL https://aka.ms/InstallAzureCLIDeb | bash \
-    &&	apt-get clean \
-    &&	rm -rf /bd_build \
-    &&	rm -rf /tmp/* /var/tmp/* \
-    &&	rm -rf /var/lib/apt/lists/* \
-    &&	rm -f /etc/ssh/ssh_host_*
+
