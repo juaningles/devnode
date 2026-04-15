@@ -11,7 +11,7 @@ all: build
 
 UBUNTU_IMAGES=jammy mantic noble lunar resolute
 ALPINE_IMAGES=alpine
-FULL_IMAGES=full full-resolute
+FULL_IMAGES=full full-resolute full-noble
 ALL_IMAGES= $(UBUNTU_IMAGES) $(ALPINE_IMAGES) $(FULL_IMAGES)
 
 
