@@ -11,84 +11,40 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN mkdir -p /usr/depot/installers
 WORKDIR /usr/depot
 
-# install netutils
-COPY ubuntu_installs/install_netutils.sh /usr/depot/installers
-RUN apt-get update \
-    && bash /usr/depot/installers/install_netutils.sh \
-    &&	apt-get clean \
-    &&	rm -rf /bd_build \
-    &&	rm -rf /tmp/* /var/tmp/* \
-    &&	rm -rf /var/lib/apt/lists/* \
-    &&	rm -f /etc/ssh/ssh_host_*
+# copy the wrapper script first (rarely changes, so this layer is stable)
+COPY ubuntu_installs/run_install.sh /usr/depot/installers/
 
-# install devutils
-COPY ubuntu_installs/install_devutils.sh /usr/depot/installers
-RUN apt-get update \
-    &&  bash /usr/depot/installers/install_devutils.sh \
-    &&	apt-get clean \
-    &&	rm -rf /bd_build \
-    &&	rm -rf /tmp/* /var/tmp/* \
-    &&	rm -rf /var/lib/apt/lists/* \
-    &&	rm -f /etc/ssh/ssh_host_*
+# each script gets its own COPY+RUN for layer caching —
+# changing one script only rebuilds from that point onward
+COPY ubuntu_installs/install_netutils.sh /usr/depot/installers/
+RUN bash /usr/depot/installers/run_install.sh install_netutils.sh
 
-# install python
-COPY ubuntu_installs/install_python.sh /usr/depot/installers
-RUN apt-get update \
-   &&  bash /usr/depot/installers/install_python.sh \
-   &&	apt-get clean \
-   &&	rm -rf /bd_build \
-   &&	rm -rf /tmp/* /var/tmp/* \
-   &&	rm -rf /var/lib/apt/lists/* \
-   &&	rm -f /etc/ssh/ssh_host_*
+COPY ubuntu_installs/install_devutils.sh /usr/depot/installers/
+RUN bash /usr/depot/installers/run_install.sh install_devutils.sh
 
-# install odbc
-COPY ubuntu_installs/install_odbc.sh /usr/depot/installers
-RUN apt-get update \
-    && bash /usr/depot/installers/install_odbc.sh \
-    &&	apt-get clean \
-    &&	rm -rf /bd_build \
-    &&	rm -rf /tmp/* /var/tmp/* \
-    &&	rm -rf /var/lib/apt/lists/* \
-    &&	rm -f /etc/ssh/ssh_host_*
+COPY ubuntu_installs/install_python.sh /usr/depot/installers/
+RUN bash /usr/depot/installers/run_install.sh install_python.sh
 
-# RUN groupadd --gid 1000 user \
-#     && useradd --uid 1000 --gid user --create-home --shell /bin/bash user
+# uncomment to add more installers:
+# COPY ubuntu_installs/install_odbc.sh /usr/depot/installers/
+# RUN bash /usr/depot/installers/run_install.sh install_odbc.sh
 
-# install zsh
+######################### START install zsh
+USER root
 RUN chsh -s /bin/zsh ubuntu
 RUN cp /etc/zsh/newuser.zshrc.recommended /home/ubuntu/.zshrc \
     && chown ubuntu:ubuntu /home/ubuntu/.zshrc
+
+# install powerlevel10k
+COPY ubuntu_installs/install_powerlevel10k.sh /usr/depot/installers
+RUN zsh /usr/depot/installers/install_powerlevel10k.sh
+CMD ["/bin/zsh"]
+######################### END install zsh
 
 # ubuntu already has a user 'ubuntu' so we just activate it
 USER ubuntu
 WORKDIR /home/ubuntu
 
-# install powerlevel10k
-COPY ubuntu_installs/install_powerlevel10k.sh /usr/depot/installers
-RUN zsh /usr/depot/installers/install_powerlevel10k.sh
 
-
-# copy all installera
-COPY ubuntu_installs/* /usr/depot/installers
-
-USER ubuntu
-WORKDIR /home/ubuntu
-CMD ["/bin/zsh"]
-
-# RUN apt-get update \
-#     &&  apt-get -y install podman podman-docker\
-#     &&	apt-get clean \
-#     &&	rm -rf /bd_build \
-#     &&	rm -rf /tmp/* /var/tmp/* \
-#     &&	rm -rf /var/lib/apt/lists/* \
-#     &&	rm -f /etc/ssh/ssh_host_*
-
-# RUN apt-get update \
-#     &&  curl -sL https://aka.ms/InstallAzureCLIDeb | bash \
-#     &&	apt-get clean \
-#     &&	rm -rf /bd_build \
-#     &&	rm -rf /tmp/* /var/tmp/* \
-#     &&	rm -rf /var/lib/apt/lists/* \
-#     &&	rm -f /etc/ssh/ssh_host_*
 
 
