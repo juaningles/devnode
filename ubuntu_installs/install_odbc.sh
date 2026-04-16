@@ -12,7 +12,7 @@ $SUDO apt-get update
 # install the Microsoft ODBC driver for SQL Server
 # instructions as of 01/03/2025
 # https://learn.microsoft.com/en-us/sql/connect/odbc/linux-mac/installing-the-microsoft-odbc-driver-for-sql-server?view=sql-server-ver17&tabs=ubuntu18-install%2Cubuntu17-install%2Cdebian8-install%2Credhat7-13-install%2Crhel7-offline
-curl -sSL -O https://packages.microsoft.com/config/ubuntu/$(grep VERSION_ID /etc/os-release | cut -d '"' -f 2 | sed -e 's/22\.10/22.04/' | sed -e 's/24\.../22.04/' | sed -e 's/26\.../25.10/')/packages-microsoft-prod.deb
+curl -sSL -O https://packages.microsoft.com/config/ubuntu/$(grep VERSION_ID /etc/os-release | cut -d '"' -f 2 | sed -e 's/26\.../25.10/')/packages-microsoft-prod.deb
 $SUDO dpkg -i packages-microsoft-prod.deb
 rm packages-microsoft-prod.deb
 
