@@ -2,6 +2,8 @@ ARG FAMILY=ubuntu
 ARG VERSION=resolute
 FROM $FAMILY:$VERSION AS builder
 ARG DEBIAN_FRONTEND=noninteractive
+# ubuntu_installs/strip.list is removed at the end of the build; --build-arg STRIP=false skips it
+ARG STRIP=true
 
 ENV TZ=Etc/UTC
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
@@ -11,6 +13,7 @@ RUN mkdir /usr/depot
 WORKDIR /usr/depot
 
 RUN apt-get update \
+    &&  apt-get -y upgrade \
     &&  apt-get -y install make curl jq tmux unzip tzdata bash-completion \
     &&	apt-get clean \
     &&	rm -rf /bd_build \
@@ -19,3 +22,17 @@ RUN apt-get update \
     &&	rm -f /etc/ssh/ssh_host_*
 
 COPY ubuntu_installs/* .
+RUN if [ "$STRIP" = "true" ]; then bash /usr/depot/strip.sh /usr/depot/strip.list; fi
+
+# Optional flattened image: `make <tag> FLATTEN=1` (docker build --target flat).
+# Squashes everything into one layer so files replaced by apt upgrade or removed
+# via strip.list stop taking space. FROM scratch drops the image config, so it is
+# restated here; keep it in sync with the builder stage.
+FROM scratch AS flat
+COPY --from=builder / /
+ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin TZ=Etc/UTC
+WORKDIR /usr/depot
+CMD ["/bin/bash"]
+
+# default target: the normal layered image
+FROM builder AS default

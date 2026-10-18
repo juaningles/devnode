@@ -1,0 +1,26 @@
+# Blacklist of things removed from devnode images; applied by strip.sh as the
+# last root step of each build. Disable for a build with --build-arg STRIP=false.
+#
+# One entry per line:
+#   /absolute/path/or/glob   remove matching files/directories (missing ones are skipped);
+#                            ** matches any depth, e.g. /usr/**/__pycache__
+#   pkg:<apt-package>        purge the apt package (and its now-unused deps) if installed
+#
+# Removing things in a later layer hides them from the container and from scanners,
+# but the bytes stay in the earlier layer. Build with FLATTEN=1 to actually reclaim
+# the space.
+
+# pebble: Canonical's service manager, shipped in rock-based images (26.04+).
+# Unused here, not owned by any apt package, and carries Go stdlib CVEs.
+/usr/bin/pebble
+/var/lib/pebble
+
+# SASL auth plugins (PLAIN/LOGIN/...) for LDAP/SMTP/IMAP logins; nothing here uses
+# them and nothing depends on them (libsasl2-2, which curl needs, stays). 1 MEDIUM CVE.
+pkg:libsasl2-modules
+
+# Python bytecode caches: regenerated (in memory) on import. ~12 MB in full.
+/usr/**/__pycache__
+
+# CPython's own test suite. ~1.3 MB in full.
+/usr/lib/python3*/test

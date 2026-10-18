@@ -3,6 +3,8 @@ ARG VERSION=resolute
 FROM $FAMILY:$VERSION AS builder
 
 ARG DEBIAN_FRONTEND=noninteractive
+# ubuntu_installs/strip.list is removed at the end of the build; --build-arg STRIP=false skips it
+ARG STRIP=true
 
 ENV TZ=Etc/UTC
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
@@ -10,6 +12,12 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN mkdir -p /usr/depot/installers
 WORKDIR /usr/depot
+
+# patch the base image; also covers builds from a stale cached base
+RUN apt-get update \
+    &&  apt-get -y upgrade \
+    &&  apt-get clean \
+    &&  rm -rf /var/lib/apt/lists/*
 
 # copy the wrapper script first (rarely changes, so this layer is stable)
 COPY ubuntu_installs/run_install.sh /usr/depot/installers/
@@ -32,18 +40,38 @@ RUN bash /usr/depot/installers/run_install.sh install_python.sh
 ######################### START install zsh
 USER root
 RUN chsh -s /bin/zsh ubuntu
-RUN cp /etc/zsh/newuser.zshrc.recommended /home/ubuntu/.zshrc \
-    && chown ubuntu:ubuntu /home/ubuntu/.zshrc
 
-# install powerlevel10k
+# install oh-my-zsh + powerlevel10k as 'ubuntu' (the user the image runs as) so
+# ~/.zshrc, ~/.oh-my-zsh and ~/.p10k.zsh land in /home/ubuntu, not /root
 COPY ubuntu_installs/install_powerlevel10k.sh /usr/depot/installers
+USER ubuntu
+WORKDIR /home/ubuntu
 RUN zsh /usr/depot/installers/install_powerlevel10k.sh
+USER root
 CMD ["/bin/zsh"]
 ######################### END install zsh
+
+# remove blacklisted paths/packages (ubuntu_installs/strip.list) as the last root step
+COPY ubuntu_installs/strip.sh ubuntu_installs/strip.list /usr/depot/installers/
+RUN if [ "$STRIP" = "true" ]; then bash /usr/depot/installers/strip.sh /usr/depot/installers/strip.list; fi
 
 # ubuntu already has a user 'ubuntu' so we just activate it
 USER ubuntu
 WORKDIR /home/ubuntu
+
+# Optional flattened image: `make <tag> FLATTEN=1` (docker build --target flat).
+# Squashes everything into one layer so files replaced by apt upgrade or removed
+# via strip.list stop taking space. FROM scratch drops the image config, so it is
+# restated here; keep it in sync with the builder stage.
+FROM scratch AS flat
+COPY --from=builder / /
+ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin TZ=Etc/UTC
+USER ubuntu
+WORKDIR /home/ubuntu
+CMD ["/bin/zsh"]
+
+# default target: the normal layered image
+FROM builder AS default
 
 
 
