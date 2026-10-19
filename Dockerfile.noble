@@ -24,6 +24,10 @@ RUN apt-get update \
 COPY ubuntu_installs/* .
 RUN if [ "$STRIP" = "true" ]; then bash /usr/depot/strip.sh /usr/depot/strip.list; fi
 
+# run as the image's built-in non-root 'ubuntu' user, like the full images
+USER ubuntu
+WORKDIR /home/ubuntu
+
 # Optional flattened image: `make <tag> FLATTEN=1` (docker build --target flat).
 # Squashes everything into one layer so files replaced by apt upgrade or removed
 # via strip.list stop taking space. FROM scratch drops the image config, so it is
@@ -31,7 +35,8 @@ RUN if [ "$STRIP" = "true" ]; then bash /usr/depot/strip.sh /usr/depot/strip.lis
 FROM scratch AS flat
 COPY --from=builder / /
 ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin TZ=Etc/UTC
-WORKDIR /usr/depot
+USER ubuntu
+WORKDIR /home/ubuntu
 CMD ["/bin/bash"]
 
 # default target: the normal layered image
