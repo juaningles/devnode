@@ -1,11 +1,76 @@
 #!/bin/bash
+# Docker Hub autobuild hook. Docker Hub runs every build rule on every push, so
+# this skips a tag whose inputs have not changed since its published image was
+# built. Each image is labeled with the commit it was built from.
+set -uo pipefail
 
+SOURCE_COMMIT=${SOURCE_COMMIT:-$(git rev-parse HEAD)}
+REV_LABEL=org.opencontainers.image.revision
+
+# Inputs of this tag: its Dockerfile (and any symlinks to it), the sources of its
+# COPY/ADD lines (kept as git pathspecs, so globs also catch deleted files), and
+# this hook directory.
+inputs() {
+    local df
+    df=$(readlink -f "Dockerfile.$DOCKER_TAG")
+    echo "Dockerfile.$DOCKER_TAG"
+    echo "$(basename "$df")"
+    for link in Dockerfile*; do
+        [ -L "$link" ] && [ "$(readlink -f "$link")" = "$df" ] && echo "$link"
+    done
+    echo hooks/
+    grep -E '^\s*(COPY|ADD)\s' "$df" | grep -v -- '--from' \
+        | sed -E 's/^\s*(COPY|ADD)\s+//' \
+        | awk '{for (i = 1; i < NF; i++) if ($i !~ /^--/) print $i}'
+}
+
+# The commit the currently published image was built from, if it has the label.
+published_revision() {
+    docker buildx imagetools inspect "$IMAGE_NAME" --format '{{json .Image}}' 2>/dev/null \
+        | grep -o "\"$REV_LABEL\":\"[0-9a-f]*\"" | head -1 | cut -d'"' -f4
+}
+
+should_skip() {
+    local prev
+    prev=$(published_revision)
+    if [ -z "$prev" ]; then
+        echo "skip-check: $IMAGE_NAME has no $REV_LABEL label; building"
+        return 1
+    fi
+    if [ "$prev" = "$SOURCE_COMMIT" ]; then
+        echo "skip-check: $IMAGE_NAME already built from $SOURCE_COMMIT; rebuilding (manual trigger)"
+        return 1
+    fi
+    if ! git cat-file -e "$prev^{commit}" 2>/dev/null; then
+        git fetch -q --unshallow 2>/dev/null || git fetch -q origin 2>/dev/null || true
+    fi
+    if ! git cat-file -e "$prev^{commit}" 2>/dev/null; then
+        echo "skip-check: published commit $prev not in this checkout; building"
+        return 1
+    fi
+    local paths
+    mapfile -t paths < <(inputs | sort -u)
+    echo "skip-check: comparing $prev..$SOURCE_COMMIT for: ${paths[*]}"
+    if git diff --quiet "$prev" "$SOURCE_COMMIT" -- "${paths[@]}"; then
+        return 0
+    fi
+    git diff --stat "$prev" "$SOURCE_COMMIT" -- "${paths[@]}"
+    return 1
+}
+
+if [ -f "Dockerfile.$DOCKER_TAG" ] && should_skip; then
+    echo "No changes for $DOCKER_TAG since its published image; skipping build."
+    exit 0
+fi
+
+set -e
 docker buildx create --name container --driver docker-container \
   --driver-opt image=moby/buildkit:v0.30.0 --use
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
   -f ./Dockerfile.$DOCKER_TAG \
   -t $IMAGE_NAME \
+  --label $REV_LABEL=$SOURCE_COMMIT \
   --sbom=generator=docker/scout-sbom-indexer:latest --provenance=mode=max \
   --output=type=registry \
   .
